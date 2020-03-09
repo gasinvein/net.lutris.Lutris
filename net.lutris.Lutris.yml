@@ -95,6 +95,11 @@ modules:
       - type: git
         url: "https://github.com/lutris/lutris.git"
         tag: v0.5.4
+      - type: patch
+        use-git: true
+        paths:
+          - patches/lutris-a99b17f.patch
+          - patches/lutris-12a458d.patch
     modules:
       - name: gnome-desktop
         buildsystem: meson
