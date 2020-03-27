@@ -2,6 +2,8 @@ id: net.lutris.Lutris
 sdk: org.gnome.Sdk
 runtime: org.gnome.Platform
 runtime-version: "3.38"
+base: org.flathub.WineBaseApp
+base-version: "20.08"
 command: lutris
 rename-icon: lutris
 copy-icon: true
@@ -26,7 +28,12 @@ finish-args:
   - --persist=.wine
   - --filesystem=xdg-data/Steam:ro
   - --filesystem=~/.var/app/com.valvesoftware.Steam:ro
-  - --env=PATH=/app/bin:/app/runners/bin:/usr/bin:/app/utils/bin
+  - --env=PATH=/app/bin:/app/runners/bin:/usr/bin
+inherit-extensions:
+  - org.freedesktop.Platform.GL32
+  - org.freedesktop.Platform.VAAPI.Intel.i386
+  - org.freedesktop.Platform.ffmpeg-full
+  - org.freedesktop.Platform.ffmpeg_full.i386
 add-extensions:
   org.gnome.Platform.Compat.i386:
     directory: lib/i386-linux-gnu
@@ -222,217 +229,6 @@ modules:
             url: "https://github.com/python-pillow/Pillow/archive/8.0.1.tar.gz"
             sha256: 004c1fce0d3427fdba9cb67b445aa7f9926ec5c1ba58760942e8c0374239fec0
 
-  # Multilib runtime for wine
-
-  - name: vkd3d
-    sources: &vkd3d_sources
-      - type: archive
-        url: "https://dl.winehq.org/vkd3d/source/vkd3d-1.2.tar.xz"
-        sha256: b04b030fcbf0f2dacc933c76c74b449bffef1fc1a18d50254ef1ad3e380df96b
-    modules:
-
-      - name: SPIRV-Headers
-        buildsystem: cmake-ninja
-        sources:
-          - type: archive
-            url: "https://github.com/KhronosGroup/SPIRV-Headers/archive/1.5.4.tar.gz"
-            sha256: fc026b6566167f6db03dc48779f0f986f9ff8c93ed651a557f28cfbe2dff4ede
-
-  - name: vkd3d-32bit
-    build-options:
-      arch:
-        x86_64: *compat_i386_opts
-    sources: *vkd3d_sources
-
-  - name: vulkan-tools
-    buildsystem: cmake-ninja
-    config-opts:
-      - -DGLSLANG_INSTALL_DIR=/app
-      - -DVULKAN_HEADERS_INSTALL_DIR=/app
-      - -DCMAKE_BUILD_TYPE=Release
-    sources:
-      - type: archive
-        url: "https://github.com/KhronosGroup/Vulkan-Tools/archive/sdk-1.2.148.0.tar.gz"
-        sha256: 61335febdae8248ce7a1ef6d07f11ae7ff67649ffcefa9bd01135f8c95dce616
-
-  - name: openldap
-    config-opts: &openldap_config_opts
-      - --disable-slapd
-      - --disable-slurpd
-      - --disable-bdb
-      - --disable-hdb
-    cleanup: &openldap_cleanup
-      - /bin
-    sources: &openldap_sources
-      - type: archive
-        url: "https://www.openldap.org/software/download/OpenLDAP/openldap-release/openldap-2.4.55.tgz"
-        sha256: 97357bd6ba8ff73d204c1f8208c5e6ab97d60c9e779f989057aa1229bbe98434
-
-  - name: openldap-32bit
-    build-options:
-      arch:
-        x86_64: *compat_i386_opts
-    config-opts: *openldap_config_opts
-    cleanup: *openldap_cleanup
-    sources: *openldap_sources
-
-
-  - name: glu
-    config-opts: &glu_config_opts
-      - --disable-static
-    sources: &glu_sources
-      - type: archive
-        url: "https://mesa.freedesktop.org/archive/glu/glu-9.0.1.tar.xz"
-        sha256: fb5a4c2dd6ba6d1c21ab7c05129b0769544e1d68e1e3b0ffecb18e73c93055bc
-
-  - name: glu-32bit
-    build-options:
-      arch:
-        x86_64: *compat_i386_opts
-    config-opts: *glu_config_opts
-    sources: *glu_sources
-
-
-  - name: eudev
-    cleanup: &eudev_cleanup
-      - /bin
-      - /sbin
-      - /lib*/udev
-    post-install:
-      - udevadm hwdb --update
-    sources: &eudev_sources
-      - type: archive
-        url: "https://github.com/gentoo/eudev/archive/v3.2.9.tar.gz"
-        sha256: 7d281276b480da3935d1acb239748c2c9db01a8043aad7e918ce57a223d8cd24
-
-  - name: eudev-32bit
-    build-options:
-      arch:
-        x86_64: *compat_i386_opts
-    cleanup: *eudev_cleanup
-    sources: *eudev_sources
-
-
-  - name: OpenCL
-    buildsystem: simple
-    build-commands:
-      - cp -av CL $FLATPAK_DEST/include/
-    sources:
-      - type: git
-        url: "https://github.com/KhronosGroup/OpenCL-Headers.git"
-        commit: 9fac4e9866a961f66bdd72fa2bff50145512f972
-
-
-  - name: libpcap
-    config-opts: &libpcap_config_opts
-      - --enable-ipv6
-    sources: &libcap_sources
-      - type: archive
-        url: "https://www.tcpdump.org/release/libpcap-1.9.1.tar.gz"
-        sha256: 635237637c5b619bcceba91900666b64d56ecb7be63f298f601ec786ce087094
-
-  - name: libpcap-32bit
-    build-options:
-      arch:
-        x86_64: *compat_i386_opts
-    config-opts: *libpcap_config_opts
-    sources: *libcap_sources
-
-
-  - name: v4l2-utils
-    config-opts: &v4l2_config_opts
-      - --disable-v4l-utils
-      - --disable-qv4l2
-      - --disable-qvidcap
-    sources: &v4l2_sources
-      - type: archive
-        url: "https://linuxtv.org/downloads/v4l-utils/v4l-utils-1.20.0.tar.bz2"
-        sha256: 956118713f7ccb405c55c7088a6a2490c32d54300dd9a30d8d5008c28d3726f7
-
-  - name: v4l2-utils-32bit
-    build-options:
-      arch:
-        x86_64: *compat_i386_opts
-    config-opts: *v4l2_config_opts
-    sources: *v4l2_sources
-
-
-  - name: libgphoto2
-    sources: &libgphoto2_sources
-      - type: archive
-        url: "https://github.com/gphoto/libgphoto2/archive/libgphoto2-2_5_26-release.tar.gz"
-        sha256: 023d6dfd281e8f461099acb882b386d21999977331bdf121e762989f9c7517a9
-      - type: script
-        dest-filename: autogen.sh
-        commands:
-          - autoreconf -ifv
-
-  - name: libgphoto2-32bit
-    build-options:
-      arch:
-        x86_64: *compat_i386_opts
-    sources: *libgphoto2_sources
-
-
-  - name: libcapi20
-    sources: &libcapi20_sources
-      - type: archive
-        url: "http://deb.debian.org/debian/pool/main/libc/libcapi20-3/libcapi20-3_3.27.orig.tar.bz2"
-        md5: 439620a9221c0222c35fb3e7a3973700
-
-  - name: libcapi20-32bit
-    build-options:
-      arch:
-        x86_64: *compat_i386_opts
-    sources: *libcapi20_sources
-
-
-  - name: gsm
-    build-options:
-      make-install-args:
-        - GSM_INSTALL_LIB=/app/lib
-    make-install-args: &gsm_make_install_args
-      - INSTALL_ROOT=/app
-      - GSM_INSTALL_INC=/app/include
-    no-autogen: true
-    cleanup: &gsm_cleanup
-      - /bin
-    sources: &gsm_sources
-      - type: archive
-        url: "http://www.quut.com/gsm/gsm-1.0.18.tar.gz"
-        sha256: 04f68087c3348bf156b78d59f4d8aff545da7f6e14f33be8f47d33f4efae2a10
-      - type: patch
-        path: patches/gsm-makefile.patch
-
-  - name: gsm-32bit
-    build-options:
-      arch:
-        x86_64: *compat_i386_opts
-      make-install-args:
-        - GSM_INSTALL_LIB=/app/lib32
-    make-install-args: *gsm_make_install_args
-    no-autogen: true
-    cleanup: *gsm_cleanup
-    sources: *gsm_sources
-
-
-  - name: FAudio
-    buildsystem: cmake-ninja
-    config-opts: &faudio_config_opts
-      - -DFFMPEG=ON
-    sources: &faudio_sources
-      - type: archive
-        url: "https://github.com/FNA-XNA/FAudio/archive/20.11.tar.gz"
-        sha256: 551f1573a98082973e8e2f0ef14be8f34299c9813d58387f9edd32142e6f913b
-
-  - name: FAudio-32bit
-    build-options:
-      arch:
-        x86_64: *compat_i386_opts
-    buildsystem: cmake-ninja
-    config-opts: *faudio_config_opts
-    sources: *faudio_sources
-
   # Multilib dependencies for native games and runners
 
   - name: libbsd
@@ -571,61 +367,12 @@ modules:
         sha256: 01e99c94a0184e63e796728af89bfac559795fb2a0d6f506fa900455ca5fff7d
     cleanup:
       - /lib/mesa-demos
-    modules:
-      - shared-modules/glew/glew.json
-
-  - name: p7zip
-    no-autogen: true
-    make-args:
-      - all2
-      - OPTFLAGS=-O2 -g
-      - DEST_HOME=/app
-      - DEST_BIN=/app/bin
-      - DEST_SHARE=/app/lib/p7zip
-      - DEST_MAN=/app/share/man
-    make-install-args:
-      - DEST_HOME=/app
-      - DEST_BIN=/app/bin
-      - DEST_SHARE=/app/lib/p7zip
-      - DEST_MAN=/app/share/man
-    sources:
-      - type: archive
-        url: "https://downloads.sourceforge.net/p7zip/p7zip_16.02_src_all.tar.bz2"
-        sha256: 5eb20ac0e2944f6cb9c2d51dd6c4518941c185347d4089ea89087ffdd6e2341f
-      - type: patch
-        path: patches/p7zip/gcc10.patch
-      - type: shell
-        only-arches:
-          - "x86_64"
-        commands:
-          - ln -sf makefile.linux_amd64_asm makefile.machine
-      - type: shell
-        only-arches:
-          - "i386"
-        commands:
-          - ln -sf makefile.linux_x86_asm_gcc_4.X makefile.machine
-    modules:
-
-      - name: yasm
-        buildsystem: cmake-ninja
-        sources:
-          - type: archive
-            url: "https://github.com/yasm/yasm/archive/v1.3.0.tar.gz"
-            sha256: f708be0b7b8c59bc1dbe7134153cd2f31faeebaa8eec48676c10f972a1f13df3
-        cleanup:
-          - "*"
 
   - name: psmisc
     sources:
       - type: archive
         url: "https://downloads.sourceforge.net/psmisc/psmisc-23.3.tar.xz"
         sha256: 41750e1a5abf7ed2647b094f58127c73dbce6876f77ba4e0a7e0995ae5c7279a
-
-  - name: cabextract
-    sources:
-      - type: archive
-        url: "https://www.cabextract.org.uk/cabextract-1.9.1.tar.gz"
-        sha256: afc253673c8ef316b4d5c29cc4aa8445844bee14afffbe092ee9469405851ca7
 
   # Required by some 8/16-bit emulators
 
@@ -677,14 +424,8 @@ modules:
   - name: lutris-app-environment
     buildsystem: simple
     build-commands:
-      - mkdir -p /app/lib/i386-linux-gnu
-      - install -Dm644 ld.so.conf -t /app/etc/
       - mkdir -p /app/runners
       - mkdir -p /app/share/steam/compatibilitytools.d
       - mkdir -p /app/utils /app/share/vulkan
       - ln -srv /app/{utils/,}share/vulkan/explicit_layer.d
       - ln -srv /app/{utils/,}share/vulkan/implicit_layer.d
-      - ln -srv /app/{utils/,}share/vulkan/explicit_layer.d
-    sources:
-      - type: file
-        path: ld.so.conf
