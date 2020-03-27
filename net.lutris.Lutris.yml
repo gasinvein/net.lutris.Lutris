@@ -56,8 +56,10 @@ add-extensions:
     no-autodownload: true
     autodelete: true
 
-  net.lutris.Lutris.VulkanLayer:
-    directory: layers
+  com.valvesoftware.Steam.Utility:
+    version: beta
+    versions: stable;
+    directory: utils
     subdirectories: true
     merge-dirs: share/vulkan/implicit_layer.d;share/vulkan/explicit_layer.d;
     no-autodownload: true
@@ -615,9 +617,9 @@ modules:
       - mkdir -p /app/lib/i386-linux-gnu
       - install -Dm644 ld.so.conf -t /app/etc/
       - mkdir -p /app/runners
-      - mkdir -p /app/layers /app/share/vulkan
-      - ln -srv /app/{layers/,}share/vulkan/explicit_layer.d
-      - ln -srv /app/{layers/,}share/vulkan/implicit_layer.d
+      - mkdir -p /app/utils /app/share/vulkan
+      - ln -srv /app/{utils/,}share/vulkan/explicit_layer.d
+      - ln -srv /app/{utils/,}share/vulkan/implicit_layer.d
     sources:
       - type: file
         path: ld.so.conf
